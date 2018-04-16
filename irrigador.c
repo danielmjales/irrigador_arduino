@@ -7,7 +7,7 @@
 uint16_t sensor_temp = 0;
 uint16_t sensor_umidade = 0;
 
-volatile uint8_t seg = 1, botaoAtivo = 0, cont = 0, tmp1, tmp2, aux = 0;
+volatile uint8_t seg = 1, botaoAtivo = 0, cont = 0, tmp1=0, tmp2=0, aux = 0;
 
 uint16_t lerSensor(uint8_t sensor) {
   ADMUX &= 0b01000000; // configura para ADC0
@@ -56,7 +56,7 @@ ISR(TIMER2_OVF_vect) {
         } else if (seg <= 20) {
             OCR1A = tmp2;
         } else if (seg <= 25) {
-            OCR1A = (int) tmp2 + (((0.0149) * sensor_umidade * seg) + ((-0.1720) * sensor_temp));
+            OCR1A = (int) tmp2 + ((0.0149 * sensor_umidade * seg) + ((-0.1720) * sensor_temp));
             tmp1 = OCR1A;
         } else if (seg <= 30) {
             OCR1A = (int) tmp1 + (((-0.0399) * sensor_umidade * seg) + ((1.196) * sensor_temp));
@@ -75,7 +75,7 @@ int main(void) {
     ADCSRA = 0b10000111; // ADEN = 1 (habilita o conversor AD) e realiza a divisao do clock por 128
     ADMUX = 0b01000000; // Configura referencia como VCC e habilita leitura da porta analogica 0
 
-    DDRD = 0b01100100; // Todas as portas D como saida
+    DDRD = 0b01100100; // Configura portas dos leds como saida (1)e botão (4-0)
     PORTD &= 0b11111011;
     
     // Configurando PWM usando o TIMER0 - PARA LEDS
@@ -85,12 +85,10 @@ int main(void) {
     OCR0B = 0;    //controle do ciclo ativo do PWM OC0B
 
     // Configuracao PWN usando TIMER1 (CONVERTE 16 BITS PARA 8 BITS) - PARA ATUADORES
-    TCCR1A = 0b10100010; // PWM nao invertido nos pinos 0C1A e OC1B
-    TCCR1B = 0b00011001; // liga TC1, prescaler = 1
-    ICR1 = 255; // valor maximo pra contagem
-    OCR1A = 0;
-    OCR1B = 0;
-
+    TCCR1A = 0b10100001; // PWM nao invertido nos pinos 0C1A e OC1B
+    TCCR1B = 0b00001001; // liga TC1, prescaler = 1
+    //ICR1 = 255; // valor maximo pra contagem
+    
     // Configurando a interrupcao do TIMER2
     cli();
     TCCR2B = 0b00000111; // TC2 com prescaler de 1024. Ti=16.384 ms
@@ -105,28 +103,30 @@ int main(void) {
 
         if (botaoAtivo) {
             PORTD |= 0b00000100;
-        } else {
+            //txByte('1');
+        }else{
           PORTD &= 0b11111011;
+            //txByte('0');
         }
         
-        ident_num((unsigned int) sensor_umidade, digitos);
-        txByte(digitos[3]);
-        txByte(digitos[2]);
-        txByte(digitos[1]);
-        txByte(digitos[0]);
-        digitos[4] = ';';
-        txByte(digitos[4]);
-        txByte('\n');
+//        ident_num((unsigned int) sensor_umidade, digitos);
+//        txByte(digitos[3]);
+//        txByte(digitos[2]);
+//        txByte(digitos[1]);
+//        txByte(digitos[0]);
+//        digitos[4] = ';';
+//        txByte(digitos[4]);
+//        txByte('\n');
 
-        ident_num((unsigned int) sensor_temp, digitos);
-        txByte(digitos[3]);
-        txByte(digitos[2]);
-        txByte(digitos[1]);
-        txByte(digitos[0]);
-        digitos[4] = ';';
-        txByte(digitos[4]);
-        txByte('\n');
-
+//        ident_num((unsigned int) sensor_temp, digitos);
+//        txByte(digitos[3]);
+//        txByte(digitos[2]);
+//        txByte(digitos[1]);
+//        txByte(digitos[0]);
+//        digitos[4] = ';';
+//        txByte(digitos[4]);
+//        txByte('\n');
+//
         ident_num((unsigned int) OCR1A, digitos);
         //txByte(digitos[3]);
         txByte(digitos[2]);
